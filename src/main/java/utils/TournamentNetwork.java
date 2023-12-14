@@ -1,9 +1,10 @@
 package utils;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import exceptions.TournamentNotFoundException;
 
-public class TournamentNetwork {
+public class TournamentNetwork implements Serializable {
     private HashMap<Integer, Tournament> tournamentMap;
         //Constructor
     public TournamentNetwork() {

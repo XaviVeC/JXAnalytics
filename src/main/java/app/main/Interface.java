@@ -13,15 +13,37 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Interface {
 
     private static String map = "";  // Variable to store the selected map
     
     
-    private static TournamentNetwork tournamentNetwork=null;
+    private static TournamentNetwork tournamentNetwork;
 
     public static void main(String[] args) {
+        try {
+            Path filePath = Path.of("tournaments.bin");
+            Files.createFile(filePath);
+            tournamentNetwork = new TournamentNetwork();
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("tournaments.bin", false))) {
+                oos.writeObject(tournamentNetwork);
+            }
+            
+        } catch (IOException err) {
+            try{
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("tournaments.bin"))) {
+                tournamentNetwork = (TournamentNetwork) ois.readObject();
+            }
+                
+            } catch (IOException | ClassNotFoundException err2) {
+                err2.printStackTrace();
+            }
+             
+        }
         SwingUtilities.invokeLater(() -> createAndShowGUI());
     }
 
@@ -86,20 +108,11 @@ public class Interface {
 
             // Open the tournament creation window
             Tournament t = openTournamentCreationWindow(playerFrame, tournamentName);
-            if (tournamentNetwork==null){
-                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("tournaments.bin"))) {
-                    tournamentNetwork = (TournamentNetwork) ois.readObject();
-                    tournamentNetwork.addTournament(t);
-                } catch (IOException | ClassNotFoundException err) {
-                    err.printStackTrace();
-                }
-            } else {
-                tournamentNetwork.addTournament(t);
-                try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("tournaments.bin"))) {
-                    oos.writeObject(tournamentNetwork);
-                } catch (IOException err) {
-                    err.printStackTrace();
-                }
+            tournamentNetwork.addTournament(t);
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("tournaments.bin", false))) {
+                oos.writeObject(tournamentNetwork);
+            } catch (IOException err) {
+                err.printStackTrace();
             }
         });
 

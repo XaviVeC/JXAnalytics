@@ -1,12 +1,13 @@
 package utils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import entity.*;
 import exceptions.PlayerNotFoundException;
 
-public class Tournament {
+public class Tournament implements Serializable {
     private int idTournament;
     private String name;
     private int nPlayers;
