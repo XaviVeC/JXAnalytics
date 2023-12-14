@@ -1,13 +1,25 @@
 package app.main;
 
 import javax.swing.*;
+
+import utils.Tournament;
+import utils.TournamentNetwork;
+
 import java.awt.*;
 //import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 public class Interface {
 
     private static String map = "";  // Variable to store the selected map
+    
+    
+    private static TournamentNetwork tournamentNetwork=null;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> createAndShowGUI());
@@ -61,6 +73,7 @@ public class Interface {
 
         // Add ActionListener for the create tournament button
         createTournamentButton.addActionListener(e -> {
+            
             // Show a popup to input the tournament name
             String tournamentName = JOptionPane.showInputDialog(playerFrame, "Enter Tournament Name:");
 
@@ -72,7 +85,22 @@ public class Interface {
             }
 
             // Open the tournament creation window
-            openTournamentCreationWindow(playerFrame, tournamentName);
+            Tournament t = openTournamentCreationWindow(playerFrame, tournamentName);
+            if (tournamentNetwork==null){
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("tournaments.bin"))) {
+                    tournamentNetwork = (TournamentNetwork) ois.readObject();
+                    tournamentNetwork.addTournament(t);
+                } catch (IOException | ClassNotFoundException err) {
+                    err.printStackTrace();
+                }
+            } else {
+                tournamentNetwork.addTournament(t);
+                try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("tournaments.bin"))) {
+                    oos.writeObject(tournamentNetwork);
+                } catch (IOException err) {
+                    err.printStackTrace();
+                }
+            }
         });
 
         // Add ActionListener for the search user button
@@ -99,18 +127,18 @@ public class Interface {
         playerFrame.setVisible(true);
     }
 
-    private static void openTournamentCreationWindow(JFrame parentFrame, String tournamentName) {
+    private static Tournament openTournamentCreationWindow(JFrame parentFrame, String tournamentName) {
         JFrame tournamentFrame = new JFrame("Tournament Creation");
+        
         tournamentFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Create button for continue in tournament creation window
         JButton continueButton = new JButton("Continue");
         continueButton.setEnabled(false); // Disable initially until map is selected
-
+        String randomTag = generateRandomTag();
         // Add ActionListener for the continue button
         continueButton.addActionListener(e -> {
             // Generate a random tag consisting of 5 letters and numbers
-            String randomTag = generateRandomTag();
 
             // Show the random tag and decision (map) in a message
             JOptionPane.showMessageDialog(tournamentFrame, "Tournament TAG: " + randomTag + "\nSelected Map: " + map);
@@ -173,6 +201,8 @@ public class Interface {
 
         // Hide the parent frame (player window) while the tournament window is open
         parentFrame.setVisible(false);
+        Tournament t = new Tournament(Integer.parseInt(randomTag), tournamentName, map);
+        return t;
     }
 
     private static String generateRandomTag() {
