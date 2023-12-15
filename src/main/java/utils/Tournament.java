@@ -15,7 +15,7 @@ public class Tournament implements Serializable {
     private String gameMode;
 
         //Constructor
-    public Tournament(int id, String n, String gm){
+    public Tournament(String n, String gm, int id){
         this.idTournament = id;
         this.name = n;
         this.players = new ArrayList<>();
